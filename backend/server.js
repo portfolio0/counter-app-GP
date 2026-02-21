@@ -16,22 +16,13 @@ mongoose
 const app = express();
 // app.use(cors());
 app.use(express.json());
-const allowedOrigins = [
-  "http://localhost:5173", // local dev (Vite)
-  "https://counter-app-gp.vercel.app", // your frontend live URL
-];
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["http://localhost:5173", "https://counter-app-gp.vercel.app"],
     credentials: true,
   }),
 );
+app.options("*", cors());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
