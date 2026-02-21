@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 export default function Dashboard() {
   const [categories, setCategories] = useState([]);
   const [summary, setSummary] = useState({});
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
@@ -16,24 +17,50 @@ export default function Dashboard() {
 
   const pressTimer = useRef(null);
 
+  // const fetchAll = async () => {
+  //   const catRes = await axios.get(
+  //     "https://counter-app-gp.onrender.com/api/categories",
+  //     { headers: { Authorization: `Bearer ${token}` } },
+  //   );
+
+  //   const sumRes = await axios.get(
+  //     "https://counter-app-gp.onrender.com/api/counter/summary",
+  //     { headers: { Authorization: `Bearer ${token}` } },
+  //   );
+
+  //   const sumObj = {};
+  //   sumRes.data.forEach((item) => {
+  //     sumObj[item._id] = item.total;
+  //   });
+
+  //   setCategories(catRes.data);
+  //   setSummary(sumObj);
+  // };
+
   const fetchAll = async () => {
-    const catRes = await axios.get(
-      "https://counter-app-gp.onrender.com/api/categories",
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
+    try {
+      const catRes = await axios.get(
+        "https://counter-app-gp.onrender.com/api/categories",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-    const sumRes = await axios.get(
-      "https://counter-app-gp.onrender.com/api/counter/summary",
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
+      const sumRes = await axios.get(
+        "https://counter-app-gp.onrender.com/api/counter/summary",
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
-    const sumObj = {};
-    sumRes.data.forEach((item) => {
-      sumObj[item._id] = item.total;
-    });
+      const sumObj = {};
+      sumRes.data.forEach((item) => {
+        sumObj[item._id] = item.total;
+      });
 
-    setCategories(catRes.data);
-    setSummary(sumObj);
+      setCategories(catRes.data);
+      setSummary(sumObj);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -113,6 +140,16 @@ export default function Dashboard() {
   const cancelPress = () => {
     clearTimeout(pressTimer.current);
   };
+
+  // loader
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-purple-600 text-white">
+        <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-lg font-semibold">Loading Counters...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
