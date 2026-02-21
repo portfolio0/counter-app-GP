@@ -6,8 +6,11 @@ export default function Dashboard() {
   const [categories, setCategories] = useState([]);
   const [summary, setSummary] = useState({});
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
 
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
   const navigate = useNavigate();
 
   const fetchAll = async () => {
@@ -47,45 +50,14 @@ export default function Dashboard() {
     fetchAll();
   };
 
-  // const action = async (id, type) => {
-  //   await axios.post(
-  //     "https://counter-app-gp.onrender.com/api/counter/action",
-  //     { categoryId: id, action: type },
-  //     { headers: { Authorization: `Bearer ${token}` } },
-  //   );
-  //   fetchAll();
-  // };
-  // const action = async (id, type) => {
-  //   // 🔥 Instant UI update
-  //   setSummary((prev) => ({
-  //     ...prev,
-  //     [id]: (prev[id] || 0) + (type === "increment" ? 1 : -1),
-  //   }));
-
-  //   try {
-  //     await axios.post(
-  //       "https://counter-app-gp.onrender.com/api/counter/action",
-  //       { categoryId: id, action: type },
-  //       { headers: { Authorization: `Bearer ${token}` } },
-  //     );
-  //   } catch (err) {
-  //     // rollback if error
-  //     setSummary((prev) => ({
-  //       ...prev,
-  //       [id]: (prev[id] || 0) + (type === "increment" ? -1 : 1),
-  //     }));
-  //     alert("Failed to update");
-  //   }
-  // };
+  // 🔥 YOUR EXISTING ACTION LOGIC (UNCHANGED)
   const action = async (id, type) => {
     const currentValue = summary[id] || 0;
 
-    //  Prevent negative
     if (type === "decrement" && currentValue <= 0) {
-      return; // stop here
+      return;
     }
 
-    // Optimistic update
     setSummary((prev) => ({
       ...prev,
       [id]: currentValue + (type === "increment" ? 1 : -1),
@@ -98,12 +70,37 @@ export default function Dashboard() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
     } catch (err) {
-      // rollback if error
       setSummary((prev) => ({
         ...prev,
         [id]: currentValue,
       }));
     }
+  };
+
+  // 🔥 NEW: Delete Category
+  const deleteCategory = async (id) => {
+    if (!window.confirm("Delete this counter?")) return;
+
+    await axios.delete(
+      `https://counter-app-gp.onrender.com/api/categories/${id}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+
+    fetchAll();
+  };
+
+  // 🔥 NEW: Update Category
+  const updateCategory = async (id) => {
+    if (!editName.trim()) return;
+
+    await axios.put(
+      `https://counter-app-gp.onrender.com/api/categories/${id}`,
+      { name: editName },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+
+    setEditingId(null);
+    fetchAll();
   };
 
   return (
@@ -120,23 +117,25 @@ export default function Dashboard() {
         <span className="text-2xl font-bold">+</span>
       </div>
 
-      {/* Add Category Input */}
-      <div className="px-4 py-3 bg-white border-b">
-        <div className="flex gap-2">
-          <input
-            placeholder="New Counter Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded-lg text-sm"
-          />
-          <button
-            onClick={addCategory}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm"
-          >
-            Add
-          </button>
+      {/* Add Category */}
+      {role !== "admin" && (
+        <div className="px-4 py-3 bg-white border-b">
+          <div className="flex gap-2">
+            <input
+              placeholder="New Counter Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="flex-1 px-3 py-2 border rounded-lg text-sm"
+            />
+            <button
+              onClick={addCategory}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Add
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Counter List */}
       <div className="bg-white">
@@ -150,23 +149,70 @@ export default function Dashboard() {
               <span className="text-4xl font-light text-purple-600">
                 {summary[c._id] || 0}
               </span>
-              <span className="text-base text-gray-700">{c.name}</span>
+
+              {editingId === c._id ? (
+                <div className="flex gap-2">
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="border px-2 py-1 rounded text-sm"
+                  />
+                  <button
+                    onClick={() => updateCategory(c._id)}
+                    className="text-green-600 text-sm"
+                  >
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <span className="text-base text-gray-700">{c.name}</span>
+              )}
             </div>
 
-            {/* Right Side Buttons */}
-            <div className="flex bg-gray-100 rounded-xl overflow-hidden">
-              <button
-                onClick={() => action(c._id, "decrement")}
-                className="px-5 py-2 text-purple-600 text-xl font-medium border-r"
-              >
-                −
-              </button>
-              <button
-                onClick={() => action(c._id, "increment")}
-                className="px-5 py-2 text-purple-600 text-xl font-medium"
-              >
-                +
-              </button>
+            {/* Right Side */}
+            <div className="flex items-center gap-3">
+              {/* Edit/Delete only for USER */}
+              {role !== "admin" && editingId !== c._id && (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditingId(c._id);
+                      setEditName(c.name);
+                    }}
+                    className="text-blue-600 text-sm"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => deleteCategory(c._id)}
+                    className="text-red-600 text-sm"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+
+              {/* Counter Buttons (Unchanged) */}
+              <div className="flex bg-gray-100 rounded-xl overflow-hidden">
+                <button
+                  disabled={(summary[c._id] || 0) <= 0}
+                  onClick={() => action(c._id, "decrement")}
+                  className={`px-5 py-2 text-purple-600 text-xl font-medium border-r ${
+                    (summary[c._id] || 0) <= 0
+                      ? "opacity-30 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => action(c._id, "increment")}
+                  className="px-5 py-2 text-purple-600 text-xl font-medium"
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
         ))}
