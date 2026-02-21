@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 
 export default function Dashboard() {
   const [categories, setCategories] = useState([]);
@@ -13,12 +14,12 @@ export default function Dashboard() {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
 
+  const pressTimer = useRef(null);
+
   const fetchAll = async () => {
     const catRes = await axios.get(
       "https://counter-app-gp.onrender.com/api/categories",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     const sumRes = await axios.get(
@@ -50,13 +51,11 @@ export default function Dashboard() {
     fetchAll();
   };
 
-  // 🔥 YOUR EXISTING ACTION LOGIC (UNCHANGED)
+  // 🔥 EXISTING ACTION LOGIC (UNCHANGED)
   const action = async (id, type) => {
     const currentValue = summary[id] || 0;
 
-    if (type === "decrement" && currentValue <= 0) {
-      return;
-    }
+    if (type === "decrement" && currentValue <= 0) return;
 
     setSummary((prev) => ({
       ...prev,
@@ -69,7 +68,7 @@ export default function Dashboard() {
         { categoryId: id, action: type },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-    } catch (err) {
+    } catch {
       setSummary((prev) => ({
         ...prev,
         [id]: currentValue,
@@ -77,7 +76,6 @@ export default function Dashboard() {
     }
   };
 
-  // 🔥 NEW: Delete Category
   const deleteCategory = async (id) => {
     if (!window.confirm("Delete this counter?")) return;
 
@@ -89,7 +87,6 @@ export default function Dashboard() {
     fetchAll();
   };
 
-  // 🔥 NEW: Update Category
   const updateCategory = async (id) => {
     if (!editName.trim()) return;
 
@@ -103,6 +100,20 @@ export default function Dashboard() {
     fetchAll();
   };
 
+  // 🔥 Long Press Handler
+  const startPress = (id, currentName) => {
+    if (role === "admin") return;
+
+    pressTimer.current = setTimeout(() => {
+      setEditingId(id);
+      setEditName(currentName);
+    }, 600); // 600ms long press
+  };
+
+  const cancelPress = () => {
+    clearTimeout(pressTimer.current);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -114,7 +125,7 @@ export default function Dashboard() {
           History
         </span>
         <h1 className="text-lg font-semibold">Count List</h1>
-        <span className="text-2xl font-bold">+</span>
+        <span></span>
       </div>
 
       {/* Add Category */}
@@ -145,25 +156,26 @@ export default function Dashboard() {
             className="flex justify-between items-center px-4 py-6 border-b"
           >
             {/* Left Side */}
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 flex-1"
+              onMouseDown={() => startPress(c._id, c.name)}
+              onMouseUp={cancelPress}
+              onMouseLeave={cancelPress}
+              onTouchStart={() => startPress(c._id, c.name)}
+              onTouchEnd={cancelPress}
+            >
               <span className="text-4xl font-light text-purple-600">
                 {summary[c._id] || 0}
               </span>
 
               {editingId === c._id ? (
-                <div className="flex gap-2">
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="border px-2 py-1 rounded text-sm"
-                  />
-                  <button
-                    onClick={() => updateCategory(c._id)}
-                    className="text-green-600 text-sm"
-                  >
-                    Save
-                  </button>
-                </div>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={() => updateCategory(c._id)}
+                  autoFocus
+                  className="border px-2 py-1 rounded text-sm"
+                />
               ) : (
                 <span className="text-base text-gray-700">{c.name}</span>
               )}
@@ -171,29 +183,17 @@ export default function Dashboard() {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              {/* Edit/Delete only for USER */}
-              {role !== "admin" && editingId !== c._id && (
-                <>
-                  <button
-                    onClick={() => {
-                      setEditingId(c._id);
-                      setEditName(c.name);
-                    }}
-                    className="text-blue-600 text-sm"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => deleteCategory(c._id)}
-                    className="text-red-600 text-sm"
-                  >
-                    Delete
-                  </button>
-                </>
+              {/* Delete with Icon */}
+              {role !== "admin" && (
+                <button
+                  onClick={() => deleteCategory(c._id)}
+                  className="text-red-600"
+                >
+                  <Trash2 size={18} />
+                </button>
               )}
 
-              {/* Counter Buttons (Unchanged) */}
+              {/* Counter Buttons */}
               <div className="flex bg-gray-100 rounded-xl overflow-hidden">
                 <button
                   disabled={(summary[c._id] || 0) <= 0}
