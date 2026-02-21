@@ -47,13 +47,35 @@ export default function Dashboard() {
     fetchAll();
   };
 
+  // const action = async (id, type) => {
+  //   await axios.post(
+  //     "https://counter-app-gp.onrender.com/api/counter/action",
+  //     { categoryId: id, action: type },
+  //     { headers: { Authorization: `Bearer ${token}` } },
+  //   );
+  //   fetchAll();
+  // };
   const action = async (id, type) => {
-    await axios.post(
-      "https://counter-app-gp.onrender.com/api/counter/action",
-      { categoryId: id, action: type },
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    fetchAll();
+    // 🔥 Instant UI update
+    setSummary((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) + (type === "increment" ? 1 : -1),
+    }));
+
+    try {
+      await axios.post(
+        "https://counter-app-gp.onrender.com/api/counter/action",
+        { categoryId: id, action: type },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+    } catch (err) {
+      // rollback if error
+      setSummary((prev) => ({
+        ...prev,
+        [id]: (prev[id] || 0) + (type === "increment" ? -1 : 1),
+      }));
+      alert("Failed to update");
+    }
   };
 
   return (
