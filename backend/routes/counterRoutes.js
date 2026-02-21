@@ -49,4 +49,3 @@ router.get("/summary", protect, async (req, res) => {
 });
 
 export default router;
-counterRoutes.js;
