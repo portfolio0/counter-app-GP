@@ -6,6 +6,14 @@ export const protect = async (req, res, next) => {
   if (!token) return res.status(401).json({ message: "Not authorized" });
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  // If admin
+  if (decoded.role === "admin") {
+    req.user = { role: "admin", name: "Administrator" };
+    return next();
+  }
+
+  // Normal user
   req.user = await User.findById(decoded.id);
   next();
 };

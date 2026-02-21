@@ -17,6 +17,16 @@ router.post("/action", protect, async (req, res) => {
   res.json({ message: "Recorded" });
 });
 
+// router.get("/history", protect, async (req, res) => {
+//   const filter = req.user.role === "admin" ? {} : { userId: req.user._id };
+
+//   const logs = await CounterLog.find(filter)
+//     .populate("categoryId")
+//     .populate("userId")
+//     .sort({ createdAt: -1 });
+
+//   res.json(logs);
+// });
 router.get("/history", protect, async (req, res) => {
   const filter = req.user.role === "admin" ? {} : { userId: req.user._id };
 
