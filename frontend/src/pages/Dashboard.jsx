@@ -187,72 +187,79 @@ export default function Dashboard() {
 
       {/* Counter List */}
       <div className="bg-white">
-        {categories.map((c) => (
-          <div
-            key={c._id}
-            className="flex justify-between items-center px-4 py-6 border-b"
-          >
-            {/* Left Side */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-sm text-gray-500">Loading counters...</p>
+          </div>
+        ) : (
+          categories.map((c) => (
             <div
-              className="flex items-center gap-3 flex-1"
-              onMouseDown={() => startPress(c._id, c.name)}
-              onMouseUp={cancelPress}
-              onMouseLeave={cancelPress}
-              onTouchStart={() => startPress(c._id, c.name)}
-              onTouchEnd={cancelPress}
+              key={c._id}
+              className="flex justify-between items-center px-4 py-6 border-b"
             >
-              <span className="text-4xl font-light text-purple-600">
-                {summary[c._id] || 0}
-              </span>
+              {/* Left Side */}
+              <div
+                className="flex items-center gap-3 flex-1"
+                onMouseDown={() => startPress(c._id, c.name)}
+                onMouseUp={cancelPress}
+                onMouseLeave={cancelPress}
+                onTouchStart={() => startPress(c._id, c.name)}
+                onTouchEnd={cancelPress}
+              >
+                <span className="text-4xl font-light text-purple-600">
+                  {summary[c._id] || 0}
+                </span>
 
-              {editingId === c._id ? (
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onBlur={() => updateCategory(c._id)}
-                  autoFocus
-                  className="border px-2 py-1 rounded text-sm"
-                />
-              ) : (
-                <span className="text-base text-gray-700">{c.name}</span>
-              )}
-            </div>
+                {editingId === c._id ? (
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onBlur={() => updateCategory(c._id)}
+                    autoFocus
+                    className="border px-2 py-1 rounded text-sm"
+                  />
+                ) : (
+                  <span className="text-base text-gray-700">{c.name}</span>
+                )}
+              </div>
 
-            {/* Right Side */}
-            <div className="flex items-center gap-3">
-              {/* Delete with Icon */}
-              {role !== "admin" && (
-                <button
-                  onClick={() => deleteCategory(c._id)}
-                  className="text-red-600"
-                >
-                  <Trash2 size={18} />
-                </button>
-              )}
+              {/* Right Side */}
+              <div className="flex items-center gap-3">
+                {/* Delete with Icon */}
+                {role !== "admin" && (
+                  <button
+                    onClick={() => deleteCategory(c._id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
 
-              {/* Counter Buttons */}
-              <div className="flex bg-gray-100 rounded-xl overflow-hidden">
-                <button
-                  disabled={(summary[c._id] || 0) <= 0}
-                  onClick={() => action(c._id, "decrement")}
-                  className={`px-5 py-2 text-purple-600 text-xl font-medium border-r ${
-                    (summary[c._id] || 0) <= 0
-                      ? "opacity-30 cursor-not-allowed"
-                      : ""
-                  }`}
-                >
-                  −
-                </button>
-                <button
-                  onClick={() => action(c._id, "increment")}
-                  className="px-5 py-2 text-purple-600 text-xl font-medium"
-                >
-                  +
-                </button>
+                {/* Counter Buttons */}
+                <div className="flex bg-gray-100 rounded-xl overflow-hidden">
+                  <button
+                    disabled={(summary[c._id] || 0) <= 0}
+                    onClick={() => action(c._id, "decrement")}
+                    className={`px-5 py-2 text-purple-600 text-xl font-medium border-r ${
+                      (summary[c._id] || 0) <= 0
+                        ? "opacity-30 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    −
+                  </button>
+                  <button
+                    onClick={() => action(c._id, "increment")}
+                    className="px-5 py-2 text-purple-600 text-xl font-medium"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
