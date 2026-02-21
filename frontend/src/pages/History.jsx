@@ -8,7 +8,7 @@ export default function History() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/counter/history", {
+      .get("https://counter-app-gp.onrender.com/api/counter/history", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setLogs(res.data))

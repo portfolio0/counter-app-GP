@@ -10,11 +10,14 @@ export default function Register() {
 
   const register = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
-        name,
-        email,
-        password,
-      });
+      await axios.post(
+        "https://counter-app-gp.onrender.com/api/auth/register",
+        {
+          name,
+          email,
+          password,
+        },
+      );
 
       alert("Account created successfully!");
       navigate("/");

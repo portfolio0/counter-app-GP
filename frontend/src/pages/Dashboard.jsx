@@ -11,12 +11,15 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const fetchAll = async () => {
-    const catRes = await axios.get("http://localhost:5000/api/categories", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const catRes = await axios.get(
+      "https://counter-app-gp.onrender.com/api/categories",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
 
     const sumRes = await axios.get(
-      "http://localhost:5000/api/counter/summary",
+      "https://counter-app-gp.onrender.com/api/counter/summary",
       { headers: { Authorization: `Bearer ${token}` } },
     );
 
@@ -36,7 +39,7 @@ export default function Dashboard() {
   const addCategory = async () => {
     if (!name) return;
     await axios.post(
-      "http://localhost:5000/api/categories",
+      "https://counter-app-gp.onrender.com/api/categories",
       { name },
       { headers: { Authorization: `Bearer ${token}` } },
     );
@@ -46,7 +49,7 @@ export default function Dashboard() {
 
   const action = async (id, type) => {
     await axios.post(
-      "http://localhost:5000/api/counter/action",
+      "https://counter-app-gp.onrender.com/api/counter/action",
       { categoryId: id, action: type },
       { headers: { Authorization: `Bearer ${token}` } },
     );
